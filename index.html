@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Corduro® – Full-Stack Payment Infrastructure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    /* ── TOKENS ──────────────────────────────────────── */
+    :root {
+      --navy:       #001433;
+      --navy-mid:   #002566;
+      --blue:       #0047AB;
+      --blue-2:     #1565C0;
+      --sky:        #E8F2FF;
+      --sky-2:      #C8DFFF;
+      --white:      #FFFFFF;
+      --off:        #F6F8FC;
+      --off-2:      #EEF2F9;
+      --rule:       #D5DFEE;
+      --rule-2:     #C0CFDF;
+      --gray:       #445166;
+      --gray-2:     #7A8EA8;
+      --text:       #09152A;
+
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans:  'DM Sans', system-ui, sans-serif;
+      --mono:  'IBM Plex Mono', monospace;
+
+      --max: 1240px;
+      --px: clamp(20px, 5vw, 72px);
+      --section-py: clamp(72px, 8vw, 112px);
+    }
+
+    /* ── BASE ────────────────────────────────────────── */
+    body { background: var(--white); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    img { display: block; max-width: 100%; }
+    a { text-decoration: none; }
+    button { font-family: inherit; }
+
+    /* ── PROGRESS ────────────────────────────────────── */
+    #progress { position:fixed; top:0; left:0; height:2px; background:var(--blue); z-index:300; width:0; transition:width .08s linear; }
+
+    /* ── HEADER ──────────────────────────────────────── */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--rule);
+      height: 68px;
+      display: flex; align-items: center;
+      padding: 0 var(--px);
+      transition: box-shadow .3s;
+    }
+    header.up { box-shadow: 0 4px 28px rgba(0,20,51,.09); }
+    .hdr-inner { max-width: var(--max); margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+
+    .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .logo-mark {
+      width: 32px; height: 32px; background: var(--navy);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      position: relative;
+    }
+    .logo-mark::after {
+      content: '';
+      position: absolute; width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-radius: 50%;
+    }
+    .logo-mark-inner {
+      width: 6px; height: 6px; background: var(--white);
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+    .logo-text { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--navy); letter-spacing: -.01em; line-height: 1; }
+    .logo-reg { font-size: .55rem; vertical-align: super; color: var(--gray-2); margin-left: 1px; }
+
+    nav { display: flex; align-items: center; gap: 28px; }
+    nav a { font-size: .8125rem; font-weight: 500; color: var(--gray); transition: color .2s; white-space: nowrap; position: relative; padding-bottom: 2px; }
+    nav a::after { content:''; position:absolute; bottom:0; left:0; width:0; height:1px; background:var(--blue); transition:width .25s; }
+    nav a:hover, nav a.active { color: var(--navy); }
+    nav a:hover::after, nav a.active::after { width: 100%; }
+
+    .hdr-cta {
+      font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+      padding: 10px 22px; background: var(--navy); color: var(--white);
+      transition: background .2s; white-space: nowrap; border: none; cursor: pointer;
+      display: inline-block;
+    }
+    .hdr-cta:hover { background: var(--navy-mid); }
+
+    /* Hamburger */
+    #hbg { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; flex-shrink: 0; }
+    #hbg span { display: block; width: 22px; height: 1.5px; background: var(--navy); transition: all .3s; }
+    #hbg.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    #hbg.open span:nth-child(2) { opacity: 0; }
+    #hbg.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    #mob { display: none; position: fixed; inset: 0; top: 68px; background: var(--white); z-index: 190; flex-direction: column; overflow-y: auto; }
+    #mob.open { display: flex; }
+    #mob a { font-size: 1.1rem; font-weight: 500; color: var(--navy); padding: 20px var(--px); border-bottom: 1px solid var(--rule); transition: background .15s; display: block; }
+    #mob a:hover { background: var(--off); }
+    .mob-cta-link { background: var(--navy) !important; color: var(--white) !important; font-weight: 600 !important; text-align: center; border-bottom: none !important; margin: 24px 20px; }
+    .mob-cta-link:hover { background: var(--navy-mid) !important; }
+
+    /* ── HERO ────────────────────────────────────────── */
+    #hero {
+      background: var(--navy);
+      padding-top: 68px;
+      min-height: 100svh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      position: relative; overflow: hidden;
+    }
+    /* Grid overlay */
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background-image:
+        linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+    /* Radial glow */
+    .hero-glow {
+      position: absolute; bottom: -120px; right: -120px; z-index: 1;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(0,71,171,.38) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-glow-2 {
+      position: absolute; top: 120px; left: -80px; z-index: 1;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(0,36,102,.5) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative; z-index: 2;
+      max-width: var(--max); margin: 0 auto; width: 100%;
+      padding: clamp(60px,8vw,100px) var(--px) clamp(56px,7vw,88px);
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: .67rem; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(255,255,255,.4); margin-bottom: 28px;
+      opacity: 0; animation: fu .7s .15s ease forwards;
+    }
+    .hero-tag-line { width: 28px; height: 1px; background: rgba(255,255,255,.25); }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+      color: var(--white);
+      margin-bottom: 28px;
+      max-width: 900px;
+      opacity: 0; animation: fu 1s .3s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    h1 em { font-style: italic; color: var(--sky-2); }
+
+    .hero-body {
+      font-size: clamp(.9rem, 1.4vw, 1.05rem); font-weight: 300;
+      color: rgba(255,255,255,.58); max-width: 580px; line-height: 1.78;
+      margin-bottom: 48px;
+      opacity: 0; animation: fu .8s .5s ease forwards;
+    }
+
+    .hero-actions {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+      opacity: 0; animation: fu .7s .68s ease forwards;
+    }
+    .btn-white {
+      font-size: .8rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      padding: 15px 34px; background: var(--white); color: var(--navy);
+      transition: background .2s; display: inline-flex; align-items: center; gap: 10px;
+    }
+    .btn-white:hover { background: var(--sky); }
+    .btn-ghost-white {
+      font-size: .8rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      padding: 15px 34px; background: transparent; color: rgba(255,255,255,.75);
+      border: 1px solid rgba(255,255,255,.25);
+      transition: all .2s; display: inline-flex; align-items: center; gap: 10px;
+    }
+    .btn-ghost-white:hover { border-color: rgba(255,255,255,.65); color: var(--white); background: rgba(255,255,255,.06); }
+
+    .hero-scroll {
+      position: absolute; bottom: 32px; right: var(--px); z-index: 2;
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
+      color: rgba(255,255,255,.25);
+      opacity: 0; animation: fu .5s 1.1s ease forwards;
+    }
+    .s-icon { width: 18px; height: 28px; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; display: flex; justify-content: center; padding-top: 5px; }
+    .s-dot { width: 3px; height: 5px; background: rgba(255,255,255,.35); border-radius: 2px; animation: sdot 1.8s 1.4s infinite; }
+    @keyframes sdot { 0%,100%{opacity:.35;transform:translateY(0)} 50%{opacity:1;transform:translateY(5px)} }
+    @keyframes fu { to { opacity:1; transform:translateY(0); } }
+
+    /* ── NETWORKS STRIP ──────────────────────────────── */
+    #networks {
+      background: var(--off);
+      border-bottom: 1px solid var(--rule);
+      padding: 22px var(--px);
+    }
+    .net-inner { max-width: var(--max); margin: 0 auto; display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+    .net-label { font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gray-2); margin-right: 32px; white-space: nowrap; flex-shrink: 0; }
+    .net-logos { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .net-badge {
+      font-family: var(--mono); font-size: .65rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+      padding: 6px 14px; border: 1px solid var(--rule-2);
+      color: var(--gray); background: var(--white);
+      transition: border-color .2s, color .2s;
+    }
+    .net-badge:hover { border-color: var(--blue); color: var(--blue); }
+    .net-badge.anchor { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+    /* ── STATS ───────────────────────────────────────── */
+    #stats { background: var(--white); border-bottom: 1px solid var(--rule); }
+    .stats-row { max-width: var(--max); margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); }
+    .stat-c { padding: clamp(32px,4vw,52px) var(--px); border-right: 1px solid var(--rule); position: relative; overflow: hidden; transition: background .2s; }
+    .stat-c:last-child { border-right: none; }
+    .stat-c:hover { background: var(--sky); }
+    .stat-c::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--blue); transform:scaleX(0); transform-origin:left; transition:transform .35s; }
+    .stat-c:hover::before { transform:scaleX(1); }
+    .stat-n { font-family: var(--serif); font-size: clamp(2rem,3.5vw,3.2rem); font-weight: 700; color: var(--navy); line-height: 1; margin-bottom: 8px; letter-spacing: -.02em; }
+    .stat-l { font-size: .78rem; font-weight: 400; color: var(--gray-2); line-height: 1.45; }
+
+    /* ── SECTION UTIL ────────────────────────────────── */
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--px); }
+    .stag { font-family: var(--mono); font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: var(--blue); display: block; margin-bottom: 14px; }
+    .stit { font-family: var(--serif); font-weight: 600; font-size: clamp(1.9rem,3.5vw,3rem); line-height: 1.12; letter-spacing: -.02em; color: var(--navy); margin-bottom: 16px; }
+    .stit em { font-style: italic; }
+    .sbod { font-size: .9375rem; font-weight: 300; color: var(--gray); line-height: 1.78; }
+    .s-rule { width: 40px; height: 2px; background: var(--blue); margin-bottom: 28px; }
+    .btn-navy {
+      font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      padding: 13px 30px; background: var(--navy); color: var(--white);
+      transition: background .2s; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
+    }
+    .btn-navy:hover { background: var(--navy-mid); }
+    .btn-outline {
+      font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      padding: 13px 30px; background: transparent; color: var(--navy);
+      border: 1px solid var(--rule-2); transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline:hover { border-color: var(--navy); }
+
+    /* ── PLATFORM ────────────────────────────────────── */
+    #platform { padding: var(--section-py) 0; background: var(--white); }
+    .plat-hdr { margin-bottom: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: end; }
+    .plat-hdr-r { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 20px; }
+    .plat-grid { display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--rule); }
+    .plat-cell {
+      padding: 40px clamp(20px,3vw,40px);
+      border-right: 1px solid var(--rule);
+      position: relative; overflow: hidden; transition: background .22s;
+    }
+    .plat-cell:last-child { border-right: none; }
+    .plat-cell::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue); transform:scaleX(0); transform-origin:left; transition:transform .3s ease; }
+    .plat-cell:hover::before { transform:scaleX(1); }
+    .plat-cell:hover { background: var(--sky); }
+    .plat-icon { width: 42px; height: 42px; background: var(--sky-2); display: flex; align-items: center; justify-content: center; margin-bottom: 22px; font-size: 1.1rem; }
+    .plat-title { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 10px; line-height: 1.25; }
+    .plat-desc { font-size: .84rem; font-weight: 300; color: var(--gray); line-height: 1.7; margin-bottom: 20px; }
+    .plat-link { font-size: .75rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--blue); display: inline-flex; align-items: center; gap: 6px; transition: gap .2s; }
+    .plat-link:hover { gap: 10px; }
+
+    /* ── TECHNOLOGY ──────────────────────────────────── */
+    #technology { padding: var(--section-py) 0; background: var(--navy); overflow: hidden; position: relative; }
+    #technology::before { content:''; position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px); background-size:64px 64px; }
+    .tech-inner { position:relative; z-index:2; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    #technology .stag { color: rgba(255,255,255,.4); }
+    #technology .stit { color: var(--white); }
+    #technology .stit em { color: var(--sky-2); }
+    #technology .sbod { color: rgba(255,255,255,.5); max-width: 100%; }
+    .tech-steps { margin-top: 40px; display: flex; flex-direction: column; }
+    .tech-step { display: flex; gap: 20px; padding: 22px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .tech-step:first-child { border-top: 1px solid rgba(255,255,255,.07); }
+    .step-num { font-family: var(--mono); font-size: .63rem; color: rgba(255,255,255,.25); letter-spacing: .06em; flex-shrink: 0; width: 20px; margin-top: 3px; }
+    .step-title { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--white); margin-bottom: 5px; }
+    .step-desc { font-size: .83rem; font-weight: 300; color: rgba(255,255,255,.48); line-height: 1.65; }
+    .tech-visual { display: flex; align-items: center; justify-content: center; }
+    #rc { width: 100%; max-width: 440px; aspect-ratio: 1; }
+
+    /* Interchange comparison */
+    .interchange {
+      margin-top: 40px; padding: 28px 28px 24px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .ic-title { font-family: var(--mono); font-size: .63rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 20px; }
+    .ic-row { margin-bottom: 16px; }
+    .ic-row:last-child { margin-bottom: 0; }
+    .ic-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+    .ic-name { font-size: .8rem; color: rgba(255,255,255,.6); font-weight: 300; }
+    .ic-val { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--white); }
+    .ic-val.savings { color: #6EE7B7; }
+    .ic-bar-bg { height: 4px; background: rgba(255,255,255,.07); border-radius: 2px; overflow: hidden; }
+    .ic-bar { height: 100%; border-radius: 2px; background: rgba(255,255,255,.25); transition: width 1.2s cubic-bezier(.22,1,.36,1); width: 0; }
+    .ic-bar.blue { background: var(--blue-2); }
+    .ic-bar.green { background: #34D399; }
+    .ic-note { font-size: .72rem; color: rgba(255,255,255,.28); margin-top: 16px; font-family: var(--mono); letter-spacing: .04em; border-top: 1px solid rgba(255,255,255,.07); padding-top: 14px; }
+
+    /* ── REGULATORY ──────────────────────────────────── */
+    #regulatory { padding: var(--section-py) 0; background: var(--off); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .reg-inner { display: grid; grid-template-columns: 5fr 7fr; gap: 80px; align-items: start; }
+    .reg-pullquote {
+      margin-top: 36px; padding: 28px 28px 28px 32px;
+      border-left: 3px solid var(--blue);
+      background: var(--white);
+    }
+    .reg-pullquote p { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; color: var(--navy); line-height: 1.5; font-style: italic; }
+    .reg-pullquote cite { display: block; margin-top: 12px; font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray-2); font-style: normal; }
+
+    .reg-cards { display: flex; flex-direction: column; gap: 1px; }
+    .reg-card { background: var(--white); padding: 28px 28px 28px 32px; border-left: 3px solid var(--rule-2); transition: border-color .2s, background .2s; }
+    .reg-card:hover { border-color: var(--blue); background: var(--sky); }
+    .reg-card-tag { font-family: var(--mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
+    .reg-card-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+    .reg-card-body { font-size: .85rem; font-weight: 300; color: var(--gray); line-height: 1.7; }
+
+    /* ── LEADERSHIP ──────────────────────────────────── */
+    #leadership { padding: var(--section-py) 0; background: var(--white); }
+    .lead-hdr { margin-bottom: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: end; }
+    .exec-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+    .exec-card { background: var(--white); padding: 36px 28px; transition: background .2s; position: relative; overflow: hidden; }
+    .exec-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue); transform:scaleX(0); transform-origin:left; transition:transform .35s; }
+    .exec-card:hover::before { transform:scaleX(1); }
+    .exec-card:hover { background: var(--sky); }
+    .exec-avatar {
+      width: 56px; height: 56px; background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 700; color: var(--white);
+      letter-spacing: -.01em;
+    }
+    .exec-name { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 5px; line-height: 1.2; }
+    .exec-title { font-family: var(--mono); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); margin-bottom: 14px; }
+    .exec-creds { display: flex; flex-direction: column; gap: 7px; }
+    .exec-cred { font-size: .8rem; font-weight: 300; color: var(--gray); line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+    .exec-cred::before { content: '—'; color: var(--rule-2); flex-shrink: 0; margin-top: 1px; }
+
+    /* ── COMPLIANCE ──────────────────────────────────── */
+    #compliance { padding: var(--section-py) 0; background: var(--navy); position: relative; overflow: hidden; }
+    #compliance::before { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px); background-size:64px 64px; }
+    .comp-inner { position: relative; z-index: 2; display: grid; grid-template-columns: 5fr 7fr; gap: 80px; align-items: start; }
+    #compliance .stag { color: rgba(255,255,255,.38); }
+    #compliance .stit { color: var(--white); }
+    #compliance .stit em { color: var(--sky-2); }
+    #compliance .sbod { color: rgba(255,255,255,.48); }
+    .comp-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-top: 28px; padding: 14px 20px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+    }
+    .comp-badge-dot { width: 8px; height: 8px; background: #34D399; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px rgba(52,211,153,.5); }
+    .comp-badge-text { font-family: var(--mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.7); }
+    .comp-pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,.07); }
+    .comp-pillar { background: var(--navy); padding: 28px 24px; transition: background .2s; }
+    .comp-pillar:hover { background: rgba(255,255,255,.04); }
+    .pillar-icon { font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--blue-2); margin-bottom: 12px; }
+    .pillar-title { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--white); margin-bottom: 8px; }
+    .pillar-desc { font-size: .8rem; font-weight: 300; color: rgba(255,255,255,.45); line-height: 1.65; }
+    .pillar-tag { display: inline-block; margin-top: 12px; font-family: var(--mono); font-size: .58rem; letter-spacing: .1em; padding: 3px 8px; background: rgba(255,255,255,.07); color: rgba(255,255,255,.4); }
+
+    /* ── ADVANTAGE ───────────────────────────────────── */
+    #advantage { padding: var(--section-py) 0; background: var(--off); border-top: 1px solid var(--rule); }
+    .adv-inner { display: grid; grid-template-columns: 5fr 7fr; gap: 80px; align-items: start; }
+    .adv-list { display: flex; flex-direction: column; margin-top: 8px; }
+    .adv-item { display: flex; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--rule); }
+    .adv-item:first-child { border-top: 1px solid var(--rule); }
+    .adv-num { font-family: var(--mono); font-size: .63rem; color: var(--blue); letter-spacing: .06em; flex-shrink: 0; width: 20px; margin-top: 3px; }
+    .adv-title { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+    .adv-desc { font-size: .83rem; font-weight: 300; color: var(--gray); line-height: 1.65; }
+    .adv-metric { display: inline-block; margin-top: 10px; font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; background: var(--sky); color: var(--blue); }
+
+    /* ── PRICING ─────────────────────────────────────── */
+    #pricing { padding: var(--section-py) 0; background: var(--white); border-top: 1px solid var(--rule); }
+    .price-hdr { margin-bottom: 48px; }
+    .ptog { display: inline-flex; border: 1px solid var(--rule-2); background: var(--off); margin-top: 28px; }
+    .togb { font-size: .75rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 9px 22px; background: transparent; border: none; cursor: pointer; color: var(--gray-2); transition: all .2s; }
+    .togb.act { background: var(--navy); color: var(--white); }
+    .save-pill { font-size: .62rem; background: #D1FAE5; color: #065F46; padding: 2px 7px; margin-left: 6px; font-weight: 600; letter-spacing: .04em; }
+    .price-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+    .pcard { background: var(--white); padding: 40px 36px; position: relative; overflow: hidden; transition: background .2s; }
+    .pcard.feat { background: var(--navy); }
+    .pcard::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--rule-2); transition:background .3s; }
+    .pcard:hover:not(.feat)::before { background: var(--blue); }
+    .pcard.feat::before { background: var(--blue-2); }
+    .pcard:hover:not(.feat) { background: var(--sky); }
+    .pb { display: inline-block; font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; padding: 4px 10px; margin-bottom: 18px; }
+    .pb.std { background: var(--sky); color: var(--blue); }
+    .pb.pop { background: var(--blue-2); color: var(--white); }
+    .pname { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; color: var(--navy); margin-bottom: 22px; }
+    .feat .pname { color: var(--white); }
+    .ppr { display: flex; align-items: baseline; gap: 3px; margin-bottom: 4px; }
+    .pcur { font-size: 1.1rem; color: var(--gray-2); font-weight: 400; }
+    .feat .pcur { color: rgba(255,255,255,.4); }
+    .pamt { font-family: var(--serif); font-size: 3.4rem; font-weight: 700; color: var(--navy); line-height: 1; }
+    .feat .pamt { color: var(--white); }
+    .pper { font-family: var(--mono); font-size: .67rem; color: var(--gray-2); margin-bottom: 28px; }
+    .feat .pper { color: rgba(255,255,255,.38); }
+    .pdivr { height: 1px; background: var(--rule); margin-bottom: 24px; }
+    .feat .pdivr { background: rgba(255,255,255,.1); }
+    .pfeat-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .pfeat-list li { display: flex; align-items: center; gap: 10px; font-size: .84rem; font-weight: 300; color: var(--gray); }
+    .feat .pfeat-list li { color: rgba(255,255,255,.65); }
+    .ck { width: 16px; height: 16px; background: var(--sky-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .feat .ck { background: rgba(255,255,255,.1); }
+    .ck svg { width: 8px; height: 8px; stroke: var(--blue); }
+    .feat .ck svg { stroke: var(--sky-2); }
+    .btn-p { display: block; width: 100%; text-align: center; font-family: var(--sans); font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 13px 20px; cursor: pointer; border: none; transition: all .2s; }
+    .bp-navy { background: var(--navy); color: var(--white); }
+    .bp-navy:hover { background: var(--navy-mid); }
+    .bp-wh { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,.28); }
+    .bp-wh:hover { border-color: var(--white); background: rgba(255,255,255,.06); }
+    .bp-out { background: transparent; color: var(--navy); border: 1px solid var(--rule-2); }
+    .bp-out:hover { border-color: var(--navy); }
+
+    /* ── CONTACT ─────────────────────────────────────── */
+    #contact { padding: var(--section-py) 0; background: var(--off); border-top: 1px solid var(--rule); }
+    .cont-inner { display: grid; grid-template-columns: 5fr 7fr; gap: 80px; align-items: start; }
+    .cont-perks { margin-top: 36px; display: flex; flex-direction: column; }
+    .cont-perk { display: flex; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--rule); font-size: .875rem; color: var(--gray); font-weight: 300; }
+    .cont-perk:first-child { border-top: 1px solid var(--rule); }
+    .perk-dot { width: 6px; height: 6px; background: var(--blue); flex-shrink: 0; }
+    .c-form { display: flex; flex-direction: column; gap: 14px; }
+    .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .f-field { display: flex; flex-direction: column; gap: 6px; }
+    .f-label { font-family: var(--mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gray-2); }
+    .f-input, .f-textarea { background: var(--white); border: 1px solid var(--rule-2); padding: 13px 16px; color: var(--text); font-family: var(--sans); font-size: .9rem; outline: none; transition: border-color .2s; resize: none; width: 100%; -webkit-appearance: none; }
+    .f-input:focus, .f-textarea:focus { border-color: var(--navy); }
+    .f-textarea { min-height: 110px; }
+    .f-select { background: var(--white); border: 1px solid var(--rule-2); padding: 13px 16px; color: var(--text); font-family: var(--sans); font-size: .9rem; outline: none; transition: border-color .2s; width: 100%; -webkit-appearance: none; cursor: pointer; }
+    .f-select:focus { border-color: var(--navy); }
+    .btn-sub { display: block; width: 100%; text-align: center; font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 16px 40px; background: var(--navy); color: var(--white); border: none; cursor: pointer; transition: background .2s; }
+    .btn-sub:hover { background: var(--navy-mid); }
+
+    /* ── FOOTER ──────────────────────────────────────── */
+    footer { background: var(--navy); padding: clamp(40px,5vw,64px) var(--px); }
+    .foot-inner { max-width: var(--max); margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; }
+    .foot-brand .logo-text { color: var(--white); font-size: 1.35rem; }
+    .foot-brand .logo-mark { background: rgba(255,255,255,.1); }
+    .foot-tagline { font-size: .8rem; font-weight: 300; color: rgba(255,255,255,.38); line-height: 1.6; max-width: 260px; margin-top: 14px; }
+    .foot-copy { font-family: var(--mono); font-size: .62rem; color: rgba(255,255,255,.22); margin-top: 24px; letter-spacing: .06em; }
+    .foot-col-title { font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 18px; }
+    .foot-links { display: flex; flex-direction: column; gap: 12px; }
+    .foot-links a { font-size: .83rem; font-weight: 300; color: rgba(255,255,255,.45); transition: color .2s; }
+    .foot-links a:hover { color: rgba(255,255,255,.9); }
+
+    /* ── REVEAL ──────────────────────────────────────── */
+    .rev { opacity: 0; transform: translateY(22px); transition: opacity .65s ease, transform .65s cubic-bezier(.22,1,.36,1); }
+    .rev.vis { opacity: 1; transform: none; }
+    .d1 { transition-delay: .08s; } .d2 { transition-delay: .16s; }
+    .d3 { transition-delay: .24s; } .d4 { transition-delay: .32s; }
+
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .exec-grid { grid-template-columns: repeat(2,1fr); }
+      .plat-grid { grid-template-columns: repeat(2,1fr); }
+      .plat-cell { border-bottom: 1px solid var(--rule); }
+      .plat-cell:nth-child(2) { border-right: none; }
+      .plat-cell:nth-child(3) { border-right: 1px solid var(--rule); }
+      .plat-cell:nth-child(3), .plat-cell:nth-child(4) { border-bottom: none; }
+      .stats-row { grid-template-columns: repeat(2,1fr); }
+      .stat-c:nth-child(2) { border-right: none; }
+      .stat-c:nth-child(3) { border-top: 1px solid var(--rule); }
+      .stat-c:nth-child(4) { border-right: none; border-top: 1px solid var(--rule); }
+      .tech-inner, .reg-inner, .comp-inner, .adv-inner, .cont-inner, .lead-hdr, .plat-hdr { grid-template-columns: 1fr; gap: 48px; }
+      .tech-visual { order: -1; }
+      #rc { max-width: 340px; }
+      .plat-hdr-r { align-items: flex-start; }
+      .price-grid { grid-template-columns: 1fr 1fr; }
+      .pcard:last-child { grid-column: span 2; }
+      .foot-inner { grid-template-columns: 1fr 1fr; }
+      .foot-brand { grid-column: span 2; }
+    }
+
+    @media (max-width: 768px) {
+      :root { --px: 20px; }
+      nav, .hdr-cta { display: none; }
+      #hbg { display: flex; }
+      h1 { font-size: clamp(2.5rem, 9vw, 3.2rem); }
+      .hero-actions { flex-direction: column; }
+      .btn-white, .btn-ghost-white { width: 100%; justify-content: center; }
+      .hero-scroll { display: none; }
+      .net-label { margin-bottom: 10px; width: 100%; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .plat-grid { grid-template-columns: 1fr; }
+      .plat-cell { border-right: none; border-bottom: 1px solid var(--rule); }
+      .plat-cell:last-child { border-bottom: none; }
+      .plat-cell:nth-child(n) { border-right: none; }
+      .tech-inner { gap: 40px; }
+      .tech-visual { display: none; }
+      .comp-pillars { grid-template-columns: 1fr; }
+      .exec-grid { grid-template-columns: 1fr 1fr; }
+      .price-grid { grid-template-columns: 1fr; }
+      .pcard:last-child { grid-column: span 1; }
+      .foot-inner { grid-template-columns: 1fr; }
+      .foot-brand { grid-column: span 1; }
+      .f-row { grid-template-columns: 1fr; }
+      .reg-inner, .adv-inner, .cont-inner, .lead-hdr { gap: 36px; }
+      .ptog { width: 100%; }
+      .togb { flex: 1; }
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 2.2rem; }
+      .stit { font-size: 1.75rem; }
+      .exec-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .stat-c { padding: 28px 20px; }
+      .pcard { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="progress"></div>
+
+  <!-- HEADER -->
+  <header id="hdr">
+    <div class="hdr-inner">
+      <a href="#" class="logo" aria-label="Corduro home">
+        <span class="logo-mark"><span class="logo-mark-inner"></span></span>
+        <span class="logo-text">Corduro<sup class="logo-reg">®</sup></span>
+      </a>
+      <nav>
+        <a href="#platform">Platform</a>
+        <a href="#technology">Technology</a>
+        <a href="#leadership">Team</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a href="#contact" class="hdr-cta">Get Started</a>
+      <button id="hbg" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <div id="mob">
+    <a href="#platform"  class="mob-nav">Platform</a>
+    <a href="#technology" class="mob-nav">Technology</a>
+    <a href="#leadership" class="mob-nav">Leadership</a>
+    <a href="#pricing"   class="mob-nav">Pricing</a>
+    <a href="#contact"   class="mob-nav">Contact</a>
+    <a href="#contact"   class="mob-nav mob-cta-link">Get Started →</a>
+  </div>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-glow-2"></div>
+    <div class="hero-inner">
+      <div class="hero-tag"><span class="hero-tag-line"></span>Full-Stack Payment Infrastructure · Dallas, Texas</div>
+      <h1>Reclaiming control<br>over the <em>rules of commerce.</em></h1>
+      <p class="hero-body">Corduro is a full-service acquirer and processor with proprietary debit routing technology — backed by Google Ventures — that bypasses Visa and Mastercard dominance by connecting directly to regional networks, reducing merchant costs by up to 25%.</p>
+      <div class="hero-actions">
+        <a href="#contact" class="btn-white">
+          Get Started
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a href="#technology" class="btn-ghost-white">Explore Technology</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <div class="s-icon"><div class="s-dot"></div></div>
+      <span>Scroll to explore</span>
+    </div>
+  </section>
+
+  <!-- NETWORK STRIP -->
+  <div id="networks">
+    <div class="net-inner">
+      <span class="net-label">Certified Across</span>
+      <div class="net-logos">
+        <span class="net-badge anchor">Fiserv Partner</span>
+        <span class="net-badge">STAR</span>
+        <span class="net-badge">NYCE</span>
+        <span class="net-badge">Accel</span>
+        <span class="net-badge">Pulse</span>
+        <span class="net-badge">SHAZAM</span>
+        <span class="net-badge">CU24</span>
+        <span class="net-badge">Level 1 PCI DSS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <section id="stats">
+    <div class="stats-row">
+      <div class="stat-c rev">
+        <div class="stat-n" data-target="4.7" data-suf="T" data-pre="$" data-dec="1">$0</div>
+        <div class="stat-l">U.S. debit transaction volume processed annually</div>
+      </div>
+      <div class="stat-c rev d1">
+        <div class="stat-n" data-target="30" data-suf="B+">$30B+</div>
+        <div class="stat-l" style="padding-top:2px">In potential merchant savings from optimized routing</div>
+      </div>
+      <div class="stat-c rev d2">
+        <div class="stat-n" data-target="25" data-suf="%">0%</div>
+        <div class="stat-l">Average debit cost reduction via least-cost routing</div>
+      </div>
+      <div class="stat-c rev d3">
+        <div class="stat-n" data-target="17" data-suf="B+">0</div>
+        <div class="stat-l">Annual transactions migrating from global networks</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLATFORM -->
+  <section id="platform">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="plat-hdr rev">
+        <div>
+          <span class="stag">Platform</span>
+          <h2 class="stit">Everything your business<br><em>needs to scale</em></h2>
+        </div>
+        <div class="plat-hdr-r">
+          <p class="sbod">From brick-and-mortar retailers to high-volume, moderate-to-high-risk online merchants — Corduro's full-stack platform covers every channel with enterprise-grade support and a customer-first approach.</p>
+          <a href="#contact" class="btn-navy" style="margin-top:24px">Request a Demo
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="plat-grid">
+        <div class="plat-cell rev">
+          <div class="plat-icon">📟</div>
+          <h3 class="plat-title">Point of Sale</h3>
+          <p class="plat-desc">Stand-alone terminals, full POS systems, card and check readers. Chip &amp; PIN, swipe, and contactless — enterprise-grade hardware for every retail environment.</p>
+          <a href="#contact" class="plat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+        <div class="plat-cell rev d1">
+          <div class="plat-icon">🌐</div>
+          <h3 class="plat-title">Online</h3>
+          <p class="plat-desc">Web checkout, developer APIs, IVR payments, NSF presentment, and card-not-present debit re-routing. Seamless integration for e-commerce at any scale.</p>
+          <a href="#contact" class="plat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+        <div class="plat-cell rev d2">
+          <div class="plat-icon">📱</div>
+          <h3 class="plat-title">Mobile</h3>
+          <p class="plat-desc">Mobile card readers, free smartphone apps, and portable payment solutions. Accept payments anywhere your business operates, with the same routing efficiency.</p>
+          <a href="#contact" class="plat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+        <div class="plat-cell rev d3">
+          <div class="plat-icon">💻</div>
+          <h3 class="plat-title">Developer API</h3>
+          <p class="plat-desc">Open data and certified infrastructure for developers, ISOs, agencies, and enterprises. Build custom payment experiences on Corduro's Durbin-compliant platform.</p>
+          <a href="#contact" class="plat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNOLOGY -->
+  <section id="technology">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="tech-inner">
+        <div class="tech-visual rev">
+          <canvas id="rc" width="440" height="440"></canvas>
+        </div>
+        <div>
+          <span class="stag rev">Debit Re-Routing Technology</span>
+          <h2 class="stit rev">Routing intelligence that<br><em>pays for itself</em></h2>
+          <p class="sbod rev">New Federal Reserve guidance (Regulation II) now requires that card-not-present debit transactions support at least two unaffiliated networks — opening the door to route over cheaper regional rails instead of Visa or Mastercard. Corduro built the technology to capture every dollar of that savings.</p>
+          <div class="tech-steps rev">
+            <div class="tech-step"><span class="step-num">01</span><div><div class="step-title">Real-Time Network Analysis</div><div class="step-desc">Continuously monitors cost, speed, and reliability across STAR, NYCE, Accel, Pulse, SHAZAM, and CU24 simultaneously.</div></div></div>
+            <div class="tech-step"><span class="step-num">02</span><div><div class="step-title">Least-Cost Path Selection</div><div class="step-desc">Proprietary decision engine selects the lowest-cost Durbin-compliant network route in milliseconds — automatically, on every transaction.</div></div></div>
+            <div class="tech-step"><span class="step-num">03</span><div><div class="step-title">Automatic Failover</div><div class="step-desc">If any network degrades, traffic instantly re-routes with zero merchant-facing impact and full settlement continuity.</div></div></div>
+          </div>
+          <div class="interchange rev">
+            <div class="ic-title">Avg. Interchange — Traditional vs. Corduro Routing</div>
+            <div class="ic-row">
+              <div class="ic-label"><span class="ic-name">Visa / Mastercard (dual-message)</span><span class="ic-val">$0.39</span></div>
+              <div class="ic-bar-bg"><div class="ic-bar blue" data-w="100"></div></div>
+            </div>
+            <div class="ic-row" style="margin-top:16px">
+              <div class="ic-label"><span class="ic-name">Regional Networks via Corduro</span><span class="ic-val savings">$0.25</span></div>
+              <div class="ic-bar-bg"><div class="ic-bar green" data-w="64"></div></div>
+            </div>
+            <div class="ic-note">Durbin-exempt issuer spreads are greater. Savings vary by issuer and transaction type.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGULATORY TAILWIND -->
+  <section id="regulatory">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="reg-inner">
+        <div>
+          <span class="stag rev">Regulatory Tailwind</span>
+          <h2 class="stit rev">The law is now<br><em>on your side</em></h2>
+          <p class="sbod rev">A fundamental shift in U.S. payment regulation is opening trillions in debit volume to competition. Corduro is the rare processor with the technology and network relationships to capture it.</p>
+          <div class="reg-pullquote rev">
+            <p>"Tokenization = network lock-in disguised as security."</p>
+            <cite>National Retail Federation &amp; FTC — on Visa/MC's anticompetitive practices</cite>
+          </div>
+        </div>
+        <div class="reg-cards rev">
+          <div class="reg-card">
+            <div class="reg-card-tag">Federal Reserve · Regulation II</div>
+            <div class="reg-card-title">CNP Debit Now Requires Two Unaffiliated Networks</div>
+            <div class="reg-card-body">New Fed guidance mandates that card-not-present debit transactions must support at least two unaffiliated networks — forcing Visa and Mastercard to compete with regional rails for the first time in CNP.</div>
+          </div>
+          <div class="reg-card">
+            <div class="reg-card-tag">FTC Action</div>
+            <div class="reg-card-title">Mastercard Forced to Allow De-Tokenization</div>
+            <div class="reg-card-body">The FTC compelled Mastercard to allow competitor networks to de-tokenize transactions — breaking the "tokenization barricade" that had forced merchants onto higher-cost Visa/MC rails.</div>
+          </div>
+          <div class="reg-card">
+            <div class="reg-card-tag">DOJ · Active Investigation</div>
+            <div class="reg-card-title">DOJ Files Antitrust Suit Against Visa</div>
+            <div class="reg-card-body">The Department of Justice filed a lawsuit against Visa for monopolizing debit markets through anticompetitive tokenization practices — further reopening CNP routing competition across the industry.</div>
+          </div>
+          <div class="reg-card">
+            <div class="reg-card-tag">Market Signal</div>
+            <div class="reg-card-title">Amazon &amp; Walmart Already Rerouting</div>
+            <div class="reg-card-body">The largest online merchants deliberately avoided network tokenization and route debit to regional networks — saving 15–30 bps per transaction. Corduro makes this capability available to every merchant.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERSHIP -->
+  <section id="leadership">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="lead-hdr">
+        <div class="rev">
+          <span class="stag">Leadership</span>
+          <h2 class="stit">Built by the people who<br><em>built the industry</em></h2>
+        </div>
+        <div class="rev d1">
+          <p class="sbod">Corduro's executive team brings decades of experience taking payment companies from startup to landmark exit — including the $670M sale of Merchant e-Solutions and taking Bank of America Merchant Services public.</p>
+        </div>
+      </div>
+      <div class="exec-grid">
+        <div class="exec-card rev">
+          <div class="exec-avatar">JA</div>
+          <div class="exec-name">Jim Aviles</div>
+          <div class="exec-title">CEO &amp; Chairman</div>
+          <div class="exec-creds">
+            <div class="exec-cred">Took Bank of America Merchant Services (BAMS) public, 1996</div>
+            <div class="exec-cred">Co-founded Merchant e-Solutions; scaled to $20B+ GPV, $670M exit</div>
+            <div class="exec-cred">12+ years Operating Executive, FT Partners — world's largest fintech investment bank</div>
+          </div>
+        </div>
+        <div class="exec-card rev d1">
+          <div class="exec-avatar">SP</div>
+          <div class="exec-name">Stephen Prince</div>
+          <div class="exec-title">SVP Operations</div>
+          <div class="exec-creds">
+            <div class="exec-cred">Former VP Operations, Bank of America Merchant Services</div>
+            <div class="exec-cred">SVP Operations, Merchant e-Solutions</div>
+            <div class="exec-cred">Payments operations expert for complex, high-volume transaction flows</div>
+          </div>
+        </div>
+        <div class="exec-card rev d2">
+          <div class="exec-avatar">RZ</div>
+          <div class="exec-name">Robert Ziegler</div>
+          <div class="exec-title">CTO &amp; Founder</div>
+          <div class="exec-creds">
+            <div class="exec-cred">Architect of Corduro's patent-pending debit routing technology</div>
+            <div class="exec-cred">15+ years expertise in PINless debit and alternative network architecture</div>
+            <div class="exec-cred">Holds foundational IP for Corduro's least-cost routing engine</div>
+          </div>
+        </div>
+        <div class="exec-card rev d3">
+          <div class="exec-avatar">NK</div>
+          <div class="exec-name">Nicholas Koustas</div>
+          <div class="exec-title">Investor &amp; Advisor</div>
+          <div class="exec-creds">
+            <div class="exec-cred">18 patents issued across payment and technology domains</div>
+            <div class="exec-cred">$100M+ raised for early-stage technology investments</div>
+            <div class="exec-cred">Venture investor with deep fintech and payments expertise</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPLIANCE -->
+  <section id="compliance">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="comp-inner">
+        <div>
+          <span class="stag rev">Security &amp; Compliance</span>
+          <h2 class="stit rev">The highest level of<br><em>certification available</em></h2>
+          <p class="sbod rev">Corduro is a Level 1 PCI DSS-compliant processor — the highest security certification for processors handling over 6 million transactions annually — with a full independent audit, not self-assessment.</p>
+          <div class="comp-badge rev">
+            <span class="comp-badge-dot"></span>
+            <span class="comp-badge-text">Level 1 PCI DSS · Full AOC · Active Certification</span>
+          </div>
+        </div>
+        <div class="comp-pillars rev">
+          <div class="comp-pillar">
+            <div class="pillar-icon">TLS</div>
+            <div class="pillar-title">Transit Encryption</div>
+            <div class="pillar-desc">TLS 1.2 or higher encrypts all data in transit, ensuring cardholder information is never exposed between systems.</div>
+            <span class="pillar-tag">TLS 1.2+</span>
+          </div>
+          <div class="comp-pillar">
+            <div class="pillar-icon">AES</div>
+            <div class="pillar-title">Data-at-Rest Encryption</div>
+            <div class="pillar-desc">AES-256 encryption secures all stored payment data, meeting the highest commercial and government standards.</div>
+            <span class="pillar-tag">AES-256</span>
+          </div>
+          <div class="comp-pillar">
+            <div class="pillar-icon">E2E</div>
+            <div class="pillar-title">End-to-End Encryption</div>
+            <div class="pillar-desc">Cardholder data remains encrypted from point of entry through processing — zero exposure at any intermediate step.</div>
+            <span class="pillar-tag">E2EE</span>
+          </div>
+          <div class="comp-pillar">
+            <div class="pillar-icon">TKN</div>
+            <div class="pillar-title">Tokenization</div>
+            <div class="pillar-desc">Sensitive cardholder data is replaced with unique tokens, adding a structural layer of fraud protection beyond encryption.</div>
+            <span class="pillar-tag">Merchant-Controlled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADVANTAGE -->
+  <section id="advantage">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="adv-inner">
+        <div>
+          <span class="stag rev">Competitive Advantage</span>
+          <h2 class="stit rev">Why Corduro<br><em>wins</em></h2>
+          <p class="sbod rev">Corduro occupies a structural position few payment companies can replicate — combining proprietary technology, rare network certifications, and operational leadership forged across $20B+ in processing history.</p>
+        </div>
+        <div class="adv-list rev">
+          <div class="adv-item">
+            <span class="adv-num">01</span>
+            <div>
+              <div class="adv-title">First Third-Party Fiserv License for Debit Re-Routing</div>
+              <div class="adv-desc">The only independent processor with Fiserv certification for dual-message debit — enabling re-routing over STAR and Accel at national scale. This license is not available to Stripe, Adyen, or Braintree.</div>
+              <span class="adv-metric">Only Independent Fiserv Licensee</span>
+            </div>
+          </div>
+          <div class="adv-item">
+            <span class="adv-num">02</span>
+            <div>
+              <div class="adv-title">Full National Network Coverage</div>
+              <div class="adv-desc">Additional agreements with NYCE, CU24, SHAZAM, and Pulse provide complete national coverage — every regional debit rail, a single integration.</div>
+              <span class="adv-metric">6 Regional Networks · National Coverage</span>
+            </div>
+          </div>
+          <div class="adv-item">
+            <span class="adv-num">03</span>
+            <div>
+              <div class="adv-title">BIN Ownership for Underwriting Control</div>
+              <div class="adv-desc">Corduro owns its BINs, providing direct underwriting control and enabling vertical-specific solutions for moderate to high-risk, high-volume merchants — including crypto and gaming.</div>
+              <span class="adv-metric">Owned BINs · High-Risk Capable</span>
+            </div>
+          </div>
+          <div class="adv-item">
+            <span class="adv-num">04</span>
+            <div>
+              <div class="adv-title">Cost-Saving Alternative to Stripe &amp; Square</div>
+              <div class="adv-desc">Where Stripe and Adyen lack owned networks and routing technology, Corduro routes around them — targeting ISOs, agents, and B2C merchants with a compelling economics story.</div>
+              <span class="adv-metric">vs. Stripe, Square, Adyen, Braintree</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="price-hdr rev">
+        <span class="stag">Pricing</span>
+        <h2 class="stit">Simple, transparent pricing</h2>
+        <p class="sbod">Choose the plan that fits your business today and scale with confidence as your volume grows.</p>
+        <div class="ptog">
+          <button class="togb act" id="bm">Monthly</button>
+          <button class="togb" id="by">Yearly <span class="save-pill">Save 20%</span></button>
+        </div>
+      </div>
+      <div class="price-grid rev d1">
+        <div class="pcard">
+          <span class="pb std">Starter</span>
+          <div class="pname">Starter</div>
+          <div class="ppr"><span class="pcur">$</span><span class="pamt" id="p0">29</span></div>
+          <div class="pper">per month</div>
+          <div class="pdivr"></div>
+          <ul class="pfeat-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>1 physical terminal</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Basic reporting dashboard</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Email support</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Web checkout</li>
+          </ul>
+          <a href="#contact" class="btn-p bp-out">Choose Starter</a>
+        </div>
+        <div class="pcard feat">
+          <span class="pb pop">Most Popular</span>
+          <div class="pname">Pro</div>
+          <div class="ppr"><span class="pcur">$</span><span class="pamt" id="p1">99</span></div>
+          <div class="pper">per month</div>
+          <div class="pdivr"></div>
+          <ul class="pfeat-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>5 terminals included</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Advanced analytics</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Priority support</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Debit re-routing enabled</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Mobile SDK access</li>
+          </ul>
+          <a href="#contact" class="btn-p bp-wh">Choose Pro</a>
+        </div>
+        <div class="pcard">
+          <span class="pb std">Enterprise</span>
+          <div class="pname">Enterprise</div>
+          <div class="ppr"><span class="pcur">$</span><span class="pamt" id="p2">249</span></div>
+          <div class="pper">per month</div>
+          <div class="pdivr"></div>
+          <ul class="pfeat-list">
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Unlimited terminals</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Custom integrations</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>24/7 dedicated support</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Full API + BIN access</li>
+            <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>SLA &amp; compliance support</li>
+          </ul>
+          <a href="#contact" class="btn-p bp-out">Choose Enterprise</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="wrap" style="padding-top:var(--section-py);padding-bottom:var(--section-py)">
+      <div class="cont-inner">
+        <div>
+          <span class="stag rev">Get in Touch</span>
+          <h2 class="stit rev">Ready to transform your payments?</h2>
+          <p class="sbod rev">Our team will show you exactly how much Corduro can save your business — with no long-term commitment required and setup handled entirely by us.</p>
+          <div class="cont-perks rev">
+            <div class="cont-perk"><span class="perk-dot"></span>No long-term contracts required</div>
+            <div class="cont-perk"><span class="perk-dot"></span>Free setup and merchant onboarding</div>
+            <div class="cont-perk"><span class="perk-dot"></span>Dedicated account manager from day one</div>
+            <div class="cont-perk"><span class="perk-dot"></span>Response within one business day</div>
+          </div>
+        </div>
+        <div class="c-form rev d1">
+          <div class="f-row">
+            <div class="f-field"><label class="f-label">First Name</label><input type="text" class="f-input" placeholder="Alex"></div>
+            <div class="f-field"><label class="f-label">Last Name</label><input type="text" class="f-input" placeholder="Johnson"></div>
+          </div>
+          <div class="f-field"><label class="f-label">Business Email</label><input type="email" class="f-input" placeholder="alex@company.com"></div>
+          <div class="f-field"><label class="f-label">Business Name</label><input type="text" class="f-input" placeholder="Acme Corp"></div>
+          <div class="f-field">
+            <label class="f-label">Monthly Processing Volume</label>
+            <select class="f-select">
+              <option value="">Select volume range</option>
+              <option>Under $50K / month</option>
+              <option>$50K – $250K / month</option>
+              <option>$250K – $1M / month</option>
+              <option>$1M – $10M / month</option>
+              <option>Over $10M / month</option>
+            </select>
+          </div>
+          <div class="f-field"><label class="f-label">Message</label><textarea class="f-textarea" placeholder="Tell us about your payment infrastructure needs, current processor, and what you're looking to improve…"></textarea></div>
+          <button class="btn-sub">Submit Inquiry →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-brand">
+        <a href="#" class="logo">
+          <span class="logo-mark" style="background:rgba(255,255,255,.1)"><span class="logo-mark-inner" style="background:rgba(255,255,255,.6)"></span></span>
+          <span class="logo-text">Corduro<sup class="logo-reg" style="color:rgba(255,255,255,.3)">®</sup></span>
+        </a>
+        <p class="foot-tagline">Full-stack payment infrastructure — reclaiming control over the rules of commerce. Founded in Dallas, Texas. Backed by Google Ventures.</p>
+        <div class="foot-copy">© <span id="yr"></span> Corduro Inc. All rights reserved. · Dallas, Texas</div>
+      </div>
+      <div>
+        <div class="foot-col-title">Company</div>
+        <div class="foot-links">
+          <a href="#platform">Platform</a>
+          <a href="#technology">Technology</a>
+          <a href="#leadership">Leadership</a>
+          <a href="#compliance">Compliance</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </div>
+      <div>
+        <div class="foot-col-title">Legal</div>
+        <div class="foot-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Security</a>
+          <a href="#">PCI Compliance</a>
+          <a href="#">System Status</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    // PROGRESS + HEADER
+    const prog=document.getElementById('progress'),hdr=document.getElementById('hdr');
+    window.addEventListener('scroll',()=>{
+      prog.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%';
+      hdr.classList.toggle('up',window.scrollY>40);
+    },{passive:true});
+
+    // HAMBURGER
+    const hbg=document.getElementById('hbg'),mob=document.getElementById('mob');
+    hbg.addEventListener('click',()=>{
+      const o=hbg.classList.toggle('open');
+      mob.classList.toggle('open',o);
+      document.body.style.overflow=o?'hidden':'';
+    });
+    document.querySelectorAll('.mob-nav').forEach(l=>l.addEventListener('click',()=>{
+      hbg.classList.remove('open'); mob.classList.remove('open'); document.body.style.overflow='';
+    }));
+
+    // ACTIVE NAV
+    const navAs=document.querySelectorAll('nav a');
+    document.querySelectorAll('section[id]').forEach(s=>
+      new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)navAs.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));}),{threshold:.3}).observe(s)
+    );
+
+    // ROUTING CANVAS
+    const rc=document.getElementById('rc');
+    if(rc){
+      const ctx=rc.getContext('2d'), W=440, H=440;
+      const nodes=[
+        {x:220,y:220,label:'Corduro',main:true},
+        {x:80, y:80, label:'STAR'},
+        {x:360,y:65, label:'NYCE'},
+        {x:45, y:255,label:'Accel'},
+        {x:395,y:240,label:'Pulse'},
+        {x:130,y:378,label:'SHAZAM'},
+        {x:318,y:385,label:'CU24'}
+      ];
+      const edges=nodes.slice(1).map((_,i)=>({from:0,to:i+1,p:Math.random(),spd:.008+Math.random()*.007}));
+      (function draw(t){
+        ctx.clearRect(0,0,W,H);
+        // Dot grid
+        for(let x=20;x<W;x+=44)for(let y=20;y<H;y+=44){ctx.beginPath();ctx.arc(x,y,.8,0,Math.PI*2);ctx.fillStyle='rgba(0,71,171,.12)';ctx.fill();}
+        // Edges + packets
+        edges.forEach(e=>{
+          const a=nodes[e.from],b=nodes[e.to];
+          ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+          ctx.strokeStyle='rgba(0,71,171,.2)';ctx.lineWidth=1;ctx.stroke();
+          e.p=(e.p+e.spd)%1;
+          ctx.beginPath();ctx.arc(a.x+(b.x-a.x)*e.p,a.y+(b.y-a.y)*e.p,3.5,0,Math.PI*2);
+          ctx.fillStyle='#1565C0';ctx.fill();
+        });
+        // Nodes
+        nodes.forEach((n,i)=>{
+          const pulse=1+.06*Math.sin((t||0)*.0018+i);
+          ctx.beginPath();ctx.arc(n.x,n.y,(n.main?24:15)*pulse,0,Math.PI*2);
+          ctx.strokeStyle=n.main?'rgba(0,71,171,.5)':'rgba(0,71,171,.22)';ctx.lineWidth=n.main?1.5:1;ctx.stroke();
+          ctx.beginPath();ctx.arc(n.x,n.y,n.main?20:11,0,Math.PI*2);
+          ctx.fillStyle=n.main?'rgba(0,71,171,.1)':'rgba(0,71,171,.05)';ctx.fill();
+          ctx.fillStyle=n.main?'#0047AB':'#4A5568';
+          ctx.font=`${n.main?600:400} ${n.main?10:9}px IBM Plex Mono,monospace`;
+          ctx.textAlign='center';
+          ctx.fillText(n.label,n.x,n.y+(n.main?38:26));
+        });
+        requestAnimationFrame(draw);
+      })(0);
+    }
+
+    // INTERCHANGE BARS
+    const bars=document.querySelectorAll('.ic-bar[data-w]');
+    const barIO=new IntersectionObserver(es=>es.forEach(e=>{
+      if(e.isIntersecting){e.target.style.width=e.target.dataset.w+'%';barIO.unobserve(e.target);}
+    }),{threshold:.5});
+    bars.forEach(b=>barIO.observe(b));
+
+    // REVEAL
+    document.querySelectorAll('.rev').forEach(el=>
+      new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');}),{threshold:.08}).observe(el)
+    );
+
+    // COUNTING STATS
+    document.querySelectorAll('.stat-n[data-target]').forEach(el=>{
+      new IntersectionObserver(es=>es.forEach(e=>{
+        if(!e.isIntersecting)return;
+        const t=parseFloat(el.dataset.target),dec=parseInt(el.dataset.dec||'0'),suf=el.dataset.suf||'',pre=el.dataset.pre||'',dur=1700,s=performance.now();
+        (function tick(n){const p=Math.min((n-s)/dur,1),ease=1-Math.pow(1-p,4);el.textContent=pre+(t*ease).toFixed(dec)+suf;if(p<1)requestAnimationFrame(tick);else el.textContent=pre+t.toFixed(dec)+suf;})(performance.now());
+      }),{threshold:.6}).observe(el);
+    });
+
+    // PRICING TOGGLE
+    const prices={monthly:[29,99,249],yearly:[24,79,199]};
+    const pEls=[document.getElementById('p0'),document.getElementById('p1'),document.getElementById('p2')];
+    const bm=document.getElementById('bm'),by=document.getElementById('by');
+    function sp(type){
+      pEls.forEach((el,i)=>{if(!el)return;const from=parseInt(el.textContent),to=prices[type][i],s=performance.now(),dur=380;(function tick(n){const p=Math.min((n-s)/dur,1);el.textContent=Math.round(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(tick);})(performance.now());});
+      bm.classList.toggle('act',type==='monthly');by.classList.toggle('act',type==='yearly');
+    }
+    bm.addEventListener('click',()=>sp('monthly'));by.addEventListener('click',()=>sp('yearly'));
+
+    // YEAR
+    document.getElementById('yr').textContent=new Date().getFullYear();
+  })();
+  </script>
+</body>
+</html>
